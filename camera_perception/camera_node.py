@@ -17,10 +17,8 @@ class CameraNode(Node):
         self.get_logger().info('Camera node started, waiting for frames...')
 
     def image_callback(self, msg):
-        # Convert ROS image to OpenCV
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         
-        # Simple perception — detect bright regions (landing pad / target)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -32,10 +30,8 @@ class CameraNode(Node):
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
                 self.get_logger().info(f'Bright target detected at ({x},{y}), area={area:.0f}')
         
-        # Save a frame as evidence
         cv2.imwrite('/tmp/latest_frame.jpg', frame)
-        
-        # Publish processed image
+
         processed_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
         self.publisher.publish(processed_msg)
 
